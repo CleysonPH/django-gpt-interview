@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>{{ page_title }}</h1>
+
+  {% for message in chat.messages.all %}
+    {% if message.role != 'system' %}
+      <div class="card mb-3 {% if message.role == 'assistant' %}text-bg-light{% endif %}">
+        <div class="card-header d-flex">
+          {{ message.role|capfirst }}
+        </div>
+        <div class="card-body">
+          <p class="card-text">{{ message.content|linebreaksbr }}</p>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+
+  <form action="{% url 'interview:create_message' chat_uuid=chat.pk %}" method="post">
+    {% csrf_token %}
+    <div class="form-floating mb-2">
+      <textarea autofocus {% if chat.completed %}disabled{% endif %} style="height: 150px" class="form-control" placeholder="Coloque aqui a sua resposta" id="answer" name="answer"></textarea>
+      <label for="answer">Resposta</label>
+    </div>
+    <button {% if chat.completed %}disabled{% endif %} type="submit" class="btn btn-primary mb-4">Enviar</button>
+  </form>
+
+  {% block scripts %}
+    <script>
+      window.scrollTo(0, document.body.scrollHeight);
+    </script>
+  {% endblock scripts %}
+{% endblock %}
