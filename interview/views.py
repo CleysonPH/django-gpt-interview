@@ -24,7 +24,7 @@ def details(request, uuid):
         request,
         "interview/details.html",
         {
-            "page_title": "Interview",
+            "page_title": f"Entrevista: {chat.job.title}",
             "chat": chat,
         },
     )
@@ -40,11 +40,16 @@ def create_message(request, chat_uuid):
             content=user_message,
         )
         gpt_service = GptService()
+        if chat.messages.filter(role=MessageRole.USER.value).count() >= 5:
+            Message.objects.create(
+                chat=chat,
+                role=MessageRole.SYSTEM.value,
+                content="Realize o feedback e não realize mais perguntas.",
+            )
+            chat.completed = True
+            chat.save()
         chat_message = gpt_service.get_chat_message(chat.messages.all())
         chat_message.chat = chat
         chat_message.save()
-        if "feedback" in chat_message.content:
-            chat.completed = True
-            chat.save()
         return redirect("interview:details", uuid=chat.uuid)
     return HttpResponseNotAllowed(permitted_methods=["POST"])

@@ -42,20 +42,22 @@ class Chat(models.Model):
         if not self.uuid:
             self.uuid = uuid.uuid4()
             self.title = f"Chat {self.job.title} - {self.uuid}"
-        super().save(*args, **kwargs)
-        replaces = {
-            "{job_title}": self.job.title,
-            "{job_requirements}": self.job.requirements,
-            "{job_responsibilities}": self.job.responsibilities,
-        }
-        initial_prompt = reduce(
-            lambda acc, key: acc.replace(key, replaces[key]),
-            replaces,
-            settings.INITIAL_PROMPT_TEMPLATE,
-        )
-        Message.objects.create(
-            chat=self, role=MessageRole.SYSTEM.value, content=initial_prompt
-        )
+            super().save(*args, **kwargs)
+            replaces = {
+                "{job_title}": self.job.title,
+                "{job_requirements}": self.job.requirements,
+                "{job_responsibilities}": self.job.responsibilities,
+            }
+            initial_prompt = reduce(
+                lambda acc, key: acc.replace(key, replaces[key]),
+                replaces,
+                settings.INITIAL_PROMPT_TEMPLATE,
+            )
+            Message.objects.create(
+                chat=self, role=MessageRole.SYSTEM.value, content=initial_prompt
+            )
+        else:
+            super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse("interview:details", kwargs={"uuid": self.uuid})
